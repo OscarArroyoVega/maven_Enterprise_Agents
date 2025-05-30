@@ -73,9 +73,9 @@ source venv/bin/activate
 - Principles of KG Standardization
 - GraphRAG at scale
 
-[![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/hamzafarooq/multi-agent-course/blob/main/Module_4/Knowledge_Graphs_Basic_Version.ipynb)
+[![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/hamzafarooq/multi-agent-course/blob/main/Module_4/Knowledge_Graphs/Knowledge_Graphs_Basic_Version.ipynb)
 
-[![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/hamzafarooq/multi-agent-course/blob/main/Module_4/Knowledge_Graphs_Advanced_Version.ipynb)
+[![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/hamzafarooq/multi-agent-course/blob/main/Module_4/Knowledge_Graphs/Knowledge_Graphs_Advanced_Version.ipynb)
 
 ---
 
