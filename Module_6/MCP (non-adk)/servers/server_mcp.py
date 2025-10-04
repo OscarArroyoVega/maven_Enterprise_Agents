@@ -3,26 +3,12 @@ from langchain.tools import tool
 import sqlite3
 from loguru import logger
 from typing import Any, Dict, List
-from langchain_community.utilities import SQLDatabase
 import pandas as pd
-from langchain_community.agent_toolkits import SQLDatabaseToolkit
-from langchain_google_genai import ChatGoogleGenerativeAI
-from langchain_google_genai import (
-    ChatGoogleGenerativeAI,
-    HarmBlockThreshold,
-    HarmCategory,
-)
 import os
+from dotenv import load_dotenv
 
-llm = ChatGoogleGenerativeAI(model="gemini-2.0-flash", max_tokens=2048, temperature=0.1, top_p=1.0,
-                             frequency_penalty=0.0, presence_penalty=0.0,
-                             safety_settings={
-        HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT: HarmBlockThreshold.BLOCK_LOW_AND_ABOVE,
-        HarmCategory.HARM_CATEGORY_HATE_SPEECH: HarmBlockThreshold.BLOCK_LOW_AND_ABOVE,
-        HarmCategory.HARM_CATEGORY_HARASSMENT: HarmBlockThreshold.BLOCK_LOW_AND_ABOVE,
-        HarmCategory.HARM_CATEGORY_VIOLENCE: HarmBlockThreshold.BLOCK_LOW_AND_ABOVE,
-        HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT: HarmBlockThreshold.BLOCK_LOW_AND_ABOVE,
-        HarmCategory.HARM_CATEGORY_CIVIC_INTEGRITY: HarmBlockThreshold.BLOCK_LOW_AND_ABOVE})
+# Load environment variables if needed
+load_dotenv()
 
 mcp = FastMCP("security-hub")
 
@@ -46,23 +32,23 @@ class DatabaseAuthenticator:
             return False
         return self.credentials[username] == self._hash_password(password)
 
-# Database setup and connection
-def setup_database(authenticator: DatabaseAuthenticator) -> SQLDatabase:
-    """Set up the database connection with authentication."""
-    import getpass
 
-    username = "admin"#input('\033[1;91mEnter username: \033[0m')
-    password = "admin123" #getpass.getpass('\033[1;91mEnter password: \033[0m')
+# Database setup and connection
+def setup_database(authenticator: DatabaseAuthenticator) -> sqlite3.Connection:
+    """Set up the database connection with authentication."""
+    username = "admin"
+    password = "admin123"
 
     if not authenticator.verify_credentials(username, password):
         raise ValueError("Invalid credentials!")
 
-    # Load dataset and create database ADD walmart_sales.csv path here. This file is available in 'data' folder
-    df = pd.read_csv(r"C:\Users\alish\Documents\google_adk\non_adk_mcp_walmart_sales_db\data\walmart_sales.csv")
+    # Load dataset and create database
+    df = pd.read_csv(r"/<Your-Path>/walmart_sales.csv")
     connection = sqlite3.connect("walmart_sales.db")
     df.to_sql(name="walmart_sales", con=connection, if_exists='replace', index=False)
 
-    return SQLDatabase.from_uri("sqlite:///walmart_sales.db")
+    return connection
+
 
 # Initialize database with sample credentials
 sample_credentials = {
@@ -71,61 +57,11 @@ sample_credentials = {
     'reader': 'read789'
 }
 authenticator = DatabaseAuthenticator(sample_credentials)
+db_connection = setup_database(authenticator)
 
-db=setup_database(authenticator)
 
-toolkit = SQLDatabaseToolkit(
-db=db,
-llm=llm
-)
-
-mcp = FastMCP("security-hub")
-
-# Extract the individual tools from your toolkit
-query_tool = toolkit.get_tools()[0]  # QuerySQLDatabaseTool
-info_tool = toolkit.get_tools()[1]   # InfoSQLDatabaseTool
-list_tool = toolkit.get_tools()[2]   # ListSQLDatabaseTool
-checker_tool = toolkit.get_tools()[3]  # QuerySQLCheckerTool
-
-# Create wrapper functions for each tool
 @mcp.tool()
 def execute_sql_query(sql: str) -> str:
-    """Execute SQL queries safely on the walmart_sales database."""
-    logger.info(f"Executing SQL query: {sql}")
-    try:
-        # First check the query using the checker tool
-        checked_sql = checker_tool.run(sql)
-        # Then execute the query
-        result = query_tool.run(checked_sql)
-        return result
-    except Exception as e:
-        logger.error(f"SQL Error: {str(e)}")
-        return f"Error: {str(e)}"
-
-@mcp.tool()
-def get_table_info(tables: str) -> str:
-    """Get schema and sample data for specified tables (comma-separated)."""
-    logger.info(f"Getting info for tables: {tables}")
-    try:
-        result = info_tool.run(tables)
-        return result
-    except Exception as e:
-        logger.error(f"Table Info Error: {str(e)}")
-        return f"Error: {str(e)}"
-
-@mcp.tool()
-def list_database_tables() -> str:
-    """List all tables in the database."""
-    logger.info("Listing all database tables")
-    try:
-        result = list_tool.run("")
-        return result
-    except Exception as e:
-        logger.error(f"List Tables Error: {str(e)}")
-        return f"Error: {str(e)}"
-
-@mcp.tool()
-def query_data(sql: str) -> str:
     """Execute SQL queries safely on the walmart_sales database."""
     logger.info(f"Executing SQL query: {sql}")
     conn = sqlite3.connect("walmart_sales.db")
@@ -142,9 +78,52 @@ def query_data(sql: str) -> str:
         conn.close()
 
 
+@mcp.tool()
+def get_table_info(table_name: str = "walmart_sales") -> str:
+    """Get schema and sample data for specified table."""
+    logger.info(f"Getting info for table: {table_name}")
+    conn = sqlite3.connect("walmart_sales.db")
+    try:
+        cursor = conn.cursor()
+        
+        # Get table schema
+        cursor.execute(f"PRAGMA table_info({table_name})")
+        schema = cursor.fetchall()
+        schema_str = "Table Schema:\n" + "\n".join(str(col) for col in schema)
+        
+        # Get sample data (first 5 rows)
+        cursor.execute(f"SELECT * FROM {table_name} LIMIT 5")
+        sample_data = cursor.fetchall()
+        sample_str = "\n\nSample Data:\n" + "\n".join(str(row) for row in sample_data)
+        
+        return schema_str + sample_str
+    except Exception as e:
+        logger.error(f"Table Info Error: {str(e)}")
+        return f"Error: {str(e)}"
+    finally:
+        conn.close()
+
+
+@mcp.tool()
+def list_database_tables() -> str:
+    """List all tables in the database."""
+    logger.info("Listing all database tables")
+    conn = sqlite3.connect("walmart_sales.db")
+    try:
+        cursor = conn.cursor()
+        cursor.execute("SELECT name FROM sqlite_master WHERE type='table';")
+        tables = cursor.fetchall()
+        return "\n".join(table[0] for table in tables)
+    except Exception as e:
+        logger.error(f"List Tables Error: {str(e)}")
+        return f"Error: {str(e)}"
+    finally:
+        conn.close()
+
+
 if __name__ == "__main__":
     with open("server_log.txt", "a") as f:
         f.write("Server started\n")
     # Start the server (this will block until the server is stopped)
     print("Starting MCP server...")
-    mcp.run(transport="stdio")  # You may want to change this to TCP for network access
+    mcp.run(transport="stdio")
