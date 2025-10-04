@@ -1,6 +1,4 @@
-===========================
 MCP_ADK_with_Gemini_API Setup Instructions
-===========================
 
 Step 0:
 Navigate to the project’s parent directory using the terminal:
