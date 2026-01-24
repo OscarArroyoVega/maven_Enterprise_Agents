@@ -16,6 +16,9 @@ from typing import Dict, Any
 import plotly.graph_objects as go
 import os
 from dotenv import load_dotenv
+import streamlit.components.v1 as components
+from pyvis.network import Network
+import tempfile
 
 # Load environment variables
 load_dotenv()
@@ -278,6 +281,10 @@ def initialize_session_state():
         st.session_state.data_loaded = False
     if 'comparison_result' not in st.session_state:
         st.session_state.comparison_result = None
+    if 'show_full_graph' not in st.session_state:
+        st.session_state.show_full_graph = False
+    if 'graph_node_limit' not in st.session_state:
+        st.session_state.graph_node_limit = 50
 
 
 def load_rag_system():
@@ -335,7 +342,7 @@ def display_hero_section(show_button=False, button_label="", button_key=""):
         with col1:
             st.markdown("""
             <div style="padding-top: 0.25rem;">
-                <h1 style="font-size: 1.5rem; margin: 0; font-weight: 600; color: var(--text-primary); letter-spacing: -0.02em;">
+                <h1 style="font-size: 1.5rem; margin: 0; font-weight: 600; color: #cf222e; letter-spacing: -0.02em;">
                     RAG vs Knowledge Graph Comparison
                 </h1>
                 <p style="font-size: 0.8125rem; color: var(--text-secondary); margin-top: 0.5rem; margin-bottom: 0.25rem; font-weight: 400; line-height: 1.5;">
@@ -644,7 +651,7 @@ def display_judge_verdict(judgment: Dict):
         st.markdown(f"<div class='result-card' style='font-size: 0.8125rem; color: var(--text-secondary); line-height: 1.5;'>{judgment['recommendation']}</div>", unsafe_allow_html=True)
 
 
-def create_comparison_chart(rag_result: Dict, kg_result: Dict, judgment: Dict):
+def create_comparison_chart(judgment: Dict):
     """Create a comparison chart using Plotly."""
     categories = ['Accuracy', 'Completeness', 'Precision']
 
@@ -714,6 +721,183 @@ def create_comparison_chart(rag_result: Dict, kg_result: Dict, judgment: Dict):
     return fig
 
 
+def create_graph_visualization(rag_system: Neo4jGraphRAG, limit: int = 50):
+    """
+    Create an interactive graph visualization using Pyvis.
+
+    Args:
+        rag_system: Neo4jGraphRAG instance
+        limit: Maximum number of nodes to display
+    """
+    try:
+        # Get graph data
+        with st.spinner("Loading graph data..."):
+            graph_data = rag_system.get_graph_data(limit=limit)
+
+        if not graph_data['nodes']:
+            st.warning("No graph data available to visualize.")
+            return
+
+        _render_pyvis_graph(graph_data, height=620)
+
+    except Exception as e:
+        st.error(f"Error creating graph visualization: {str(e)}")
+
+
+def create_query_graph_visualization(graph_data: Dict[str, Any]):
+    """
+    Create visualization for the specific subgraph used to answer a question.
+
+    Args:
+        graph_data: Dictionary with 'nodes' and 'relationships'
+    """
+    try:
+        if not graph_data or not graph_data.get('nodes'):
+            st.info("💡 No graph structure available for this query. The query may have returned simple values or aggregations rather than graph paths.")
+            return
+
+        st.markdown("""
+        <div style="margin-top: 0.75rem; padding: 0.75rem; background: var(--bg-secondary); border-radius: 6px; border: 1px solid var(--border-light);">
+            <div style="font-size: 0.8125rem; font-weight: 600; color: var(--text-primary); margin-bottom: 0.25rem;">
+                📊 Query Graph Visualization
+            </div>
+            <div style="font-size: 0.75rem; color: var(--text-secondary);">
+                Showing the knowledge graph path used to answer your question
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+
+        _render_pyvis_graph(graph_data, height=450)
+
+    except Exception as e:
+        st.error(f"Error creating query visualization: {str(e)}")
+
+
+def _render_pyvis_graph(graph_data: Dict[str, Any], height: int = 600):
+    """
+    Internal function to render a Pyvis graph from graph data.
+
+    Args:
+        graph_data: Dictionary with 'nodes' and 'relationships'
+        height: Height of the visualization in pixels
+    """
+    # Create Pyvis network
+    net = Network(
+        height=f"{height}px",
+        width="100%",
+        bgcolor="#ffffff",
+        font_color="#24292f",
+        notebook=False
+    )
+
+    # Configure physics for better layout
+    net.set_options("""
+    {
+        "physics": {
+            "enabled": true,
+            "barnesHut": {
+                "gravitationalConstant": -8000,
+                "centralGravity": 0.3,
+                "springLength": 95,
+                "springConstant": 0.04,
+                "damping": 0.09
+            },
+            "minVelocity": 0.75
+        },
+        "nodes": {
+            "font": {
+                "size": 14,
+                "face": "Mona Sans, Inter, sans-serif"
+            }
+        },
+        "edges": {
+            "smooth": {
+                "type": "continuous"
+            },
+            "font": {
+                "size": 11,
+                "align": "middle"
+            }
+        }
+    }
+    """)
+
+    # Color mapping for different node types
+    color_map = {
+        'Researcher': '#0969da',  # Blue
+        'Article': '#1a7f37',     # Green
+        'Topic': '#cf222e'        # Red
+    }
+
+    # Add nodes
+    for node in graph_data['nodes']:
+        node_id = node['id']
+        label = node['label']
+        props = node['properties']
+
+        # Create node title (hover text)
+        if label == 'Researcher':
+            title = f"Researcher: {props.get('name', 'Unknown')}"
+            node_label = props.get('name', 'Unknown')
+        elif label == 'Article':
+            title = f"Article: {props.get('title', 'Unknown')[:50]}..."
+            node_label = props.get('title', 'Unknown')[:30] + "..."
+        elif label == 'Topic':
+            title = f"Topic: {props.get('name', 'Unknown')}"
+            node_label = props.get('name', 'Unknown')
+        else:
+            title = f"{label}: {str(props)[:50]}"
+            node_label = label
+
+        net.add_node(
+            node_id,
+            label=node_label,
+            title=title,
+            color=color_map.get(label, '#6e7781'),
+            size=25 if label == 'Researcher' else 20
+        )
+
+    # Add edges
+    for rel in graph_data['relationships']:
+        if rel['source'] is not None and rel['target'] is not None:
+            net.add_edge(
+                rel['source'],
+                rel['target'],
+                title=rel['type'],
+                label=rel['type']
+            )
+
+    # Save to temporary file
+    with tempfile.NamedTemporaryFile(delete=False, suffix='.html', mode='w', encoding='utf-8') as f:
+        net.save_graph(f.name)
+        html_file = f.name
+
+    # Read and display
+    with open(html_file, 'r', encoding='utf-8') as f:
+        html_content = f.read()
+
+    # Clean up
+    os.unlink(html_file)
+
+    # Display in Streamlit
+    components.html(html_content, height=height + 20, scrolling=False)
+
+    # Show legend
+    st.markdown("""
+    <div style="margin-top: 0.5rem; padding: 0.75rem; background: var(--bg-secondary); border-radius: 6px; border: 1px solid var(--border-light);">
+        <div style="font-size: 0.75rem; font-weight: 600; color: var(--text-primary); margin-bottom: 0.5rem;">Legend:</div>
+        <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+            <div style="font-size: 0.75rem;"><span style="color: #0969da;">●</span> Researcher</div>
+            <div style="font-size: 0.75rem;"><span style="color: #1a7f37;">●</span> Article</div>
+            <div style="font-size: 0.75rem;"><span style="color: #cf222e;">●</span> Topic</div>
+        </div>
+        <div style="margin-top: 0.5rem; font-size: 0.6875rem; color: var(--text-tertiary);">
+            💡 Drag nodes to rearrange • Scroll to zoom • Click nodes for details
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+
+
 def main():
     """Main application logic."""
     initialize_session_state()
@@ -772,11 +956,38 @@ def main():
 
         return
 
+    # Graph Visualization Section
+    st.markdown('<h3 style="font-size: 0.9375rem; font-weight: 600; color: var(--text-primary); margin: 0.75rem 0 0.5rem 0; letter-spacing: -0.01em;">Knowledge Graph Visualization</h3>', unsafe_allow_html=True)
+
+    with st.expander("🔍 View Graph Structure", expanded=False):
+        st.markdown("""
+        <p style="font-size: 0.8125rem; color: var(--text-secondary); margin-bottom: 0.75rem;">
+            Interactive visualization of the knowledge graph showing researchers, articles, topics, and their relationships.
+        </p>
+        """, unsafe_allow_html=True)
+
+        # Controls
+        node_limit = st.slider("Number of nodes to display", min_value=20, max_value=50, value=50, step=10)
+
+        col1, col2 = st.columns([1, 3])
+        with col1:
+            if st.button("Generate Graph", use_container_width=True):
+                st.session_state.show_full_graph = True
+                st.session_state.graph_node_limit = node_limit
+
+        # Display graph if button was clicked
+        if st.session_state.get('show_full_graph', False):
+            create_graph_visualization(st.session_state.rag_system,
+                                     limit=st.session_state.get('graph_node_limit', 50))
+
+    st.markdown('<div style="height: 0.75rem;"></div>', unsafe_allow_html=True)
+
     # Question input
     st.markdown('<h3 style="font-size: 0.9375rem; font-weight: 600; color: var(--text-primary); margin: 0.75rem 0 0.5rem 0; letter-spacing: -0.01em;">Ask a Question</h3>', unsafe_allow_html=True)
 
     # Sample questions at the top
     sample_questions = [
+        "Who are the most connected researchers in the collaboration network?",
     "Who are the collaborators of Emily Chen?",
     "How many articles has each researcher published?",
     "Show me all articles published by David Johnson",
@@ -812,7 +1023,7 @@ def main():
         key="question_input"
     )
 
-    col1, col2, col3 = st.columns([1, 1, 2])
+    col1, col2 = st.columns([1, 1])
 
     with col1:
         compare_button = st.button(
@@ -840,6 +1051,7 @@ def main():
 
             with col2:
                 kg_container = st.empty()
+                kg_graph_container = st.empty()
                 kg_details_container = st.empty()
 
             judge_container = st.empty()
@@ -887,6 +1099,12 @@ def main():
                     st.error(f"❌ Knowledge Graph query failed: {kg_result.get('error')}")
                     return
 
+            # Show query graph visualization
+            if kg_result['success'] and kg_result.get('graph_data') and kg_result['graph_data'].get('nodes'):
+                with kg_graph_container.container():
+                    st.markdown('<div style="height: 0.5rem;"></div>', unsafe_allow_html=True)
+                    create_query_graph_visualization(kg_result['graph_data'])
+
             if show_details and kg_result['success']:
                 with kg_details_container:
                     with st.expander("🔍 View Cypher Query"):
@@ -910,7 +1128,7 @@ def main():
                 # Show comparison chart
                 with chart_container.container():
                     st.markdown('<h3 style="font-size: 0.875rem; font-weight: 600; color: var(--text-primary); margin: 1rem 0 0.5rem 0; letter-spacing: -0.01em;">Visual Comparison</h3>', unsafe_allow_html=True)
-                    fig = create_comparison_chart(rag_result, kg_result, judgment)
+                    fig = create_comparison_chart(judgment)
                     st.plotly_chart(fig, use_container_width=True)
 
             # Store for reference

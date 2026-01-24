@@ -433,11 +433,15 @@ Cypher Query:"""
         try:
             results = self.execute_query(cypher)
 
+            # Try to extract graph visualization data
+            graph_data = self._extract_graph_from_results(results, cypher)
+
             return {
                 "success": True,
                 "cypher": cypher,
                 "results": results,
                 "result_count": len(results),
+                "graph_data": graph_data,
                 "time": time.time() - start_time,
                 "error": None
             }
@@ -448,9 +452,136 @@ Cypher Query:"""
                 "cypher": cypher,
                 "results": [],
                 "result_count": 0,
+                "graph_data": {"nodes": [], "relationships": []},
                 "time": time.time() - start_time,
                 "error": f"Cypher execution error: {str(e)}"
             }
+
+    def _extract_graph_from_results(self, results: List[Dict], cypher: str) -> Dict[str, Any]:
+        """
+        Extract graph visualization data from query results.
+        Attempts to identify nodes and relationships from the data.
+        """
+        nodes_dict = {}
+        relationships_list = []
+
+        try:
+            # Try to identify entity names from results and fetch their graph structure
+            entity_names = set()
+
+            for result in results:
+                for key, value in result.items():
+                    if isinstance(value, str) and value:
+                        entity_names.add(value)
+                    elif isinstance(value, list):
+                        for item in value:
+                            if isinstance(item, str) and item:
+                                entity_names.add(item)
+
+            # If we found entity names, try to fetch their graph structure
+            if entity_names and len(entity_names) < 50:
+                # Limit to first 20 entities to avoid huge queries
+                entity_names = list(entity_names)[:20]
+
+                # Simplified approach: Find researchers and their immediate neighborhood
+                graph_query = """
+                // Find researchers by name
+                MATCH (r:Researcher)
+                WHERE r.name IN $names
+
+                // Get their published articles
+                OPTIONAL MATCH (r)-[pub:PUBLISHED]->(a:Article)
+
+                // Get topics for these articles
+                OPTIONAL MATCH (a)-[in_topic:IN_TOPIC]->(t:Topic)
+
+                // Get co-authors (other researchers who published the same articles)
+                OPTIONAL MATCH (a)<-[pub2:PUBLISHED]-(co_author:Researcher)
+                WHERE co_author <> r
+
+                // Collect all nodes and relationships
+                WITH collect(DISTINCT r) + collect(DISTINCT a) + collect(DISTINCT t) + collect(DISTINCT co_author) as all_nodes,
+                     collect(DISTINCT pub) + collect(DISTINCT in_topic) + collect(DISTINCT pub2) as all_rels
+
+                // Return formatted data
+                RETURN
+                    [node in all_nodes WHERE node IS NOT NULL | {
+                        id: id(node),
+                        label: head(labels(node)),
+                        properties: properties(node)
+                    }] as nodes,
+                    [rel in all_rels WHERE rel IS NOT NULL | {
+                        source: id(startNode(rel)),
+                        target: id(endNode(rel)),
+                        type: type(rel)
+                    }] as relationships
+                """
+
+                graph_results = self.execute_query(graph_query, {"names": entity_names})
+
+                if graph_results and len(graph_results) > 0 and graph_results[0]:
+                    # Process nodes
+                    for node in graph_results[0].get('nodes', []):
+                        if node and node.get('id') is not None:
+                            nodes_dict[node['id']] = node
+
+                    # Process relationships
+                    for rel in graph_results[0].get('relationships', []):
+                        if rel and rel.get('source') is not None and rel.get('target') is not None:
+                            # Only include relationships where both nodes exist
+                            if rel['source'] in nodes_dict and rel['target'] in nodes_dict:
+                                relationships_list.append(rel)
+
+                # If no nodes found yet, try finding by article titles
+                if not nodes_dict:
+                    article_query = """
+                    // Find articles by title
+                    MATCH (a:Article)
+                    WHERE a.title IN $names
+
+                    // Get their authors and topics
+                    OPTIONAL MATCH (r:Researcher)-[pub:PUBLISHED]->(a)
+                    OPTIONAL MATCH (a)-[in_topic:IN_TOPIC]->(t:Topic)
+
+                    // Collect all nodes and relationships
+                    WITH collect(DISTINCT a) + collect(DISTINCT r) + collect(DISTINCT t) as all_nodes,
+                         collect(DISTINCT pub) + collect(DISTINCT in_topic) as all_rels
+
+                    // Return formatted data
+                    RETURN
+                        [node in all_nodes WHERE node IS NOT NULL | {
+                            id: id(node),
+                            label: head(labels(node)),
+                            properties: properties(node)
+                        }] as nodes,
+                        [rel in all_rels WHERE rel IS NOT NULL | {
+                            source: id(startNode(rel)),
+                            target: id(endNode(rel)),
+                            type: type(rel)
+                        }] as relationships
+                    """
+
+                    article_results = self.execute_query(article_query, {"names": entity_names})
+
+                    if article_results and len(article_results) > 0 and article_results[0]:
+                        for node in article_results[0].get('nodes', []):
+                            if node and node.get('id') is not None:
+                                nodes_dict[node['id']] = node
+
+                        for rel in article_results[0].get('relationships', []):
+                            if rel and rel.get('source') is not None and rel.get('target') is not None:
+                                if rel['source'] in nodes_dict and rel['target'] in nodes_dict:
+                                    relationships_list.append(rel)
+
+        except Exception as e:
+            # If extraction fails, log and return empty graph
+            print(f"Debug: Graph extraction failed: {str(e)}")
+            pass
+
+        return {
+            'nodes': list(nodes_dict.values()),
+            'relationships': relationships_list
+        }
 
     def format_kg_results(self, results: List[Dict]) -> str:
         """Format KG results into readable text."""
@@ -523,6 +654,7 @@ Answer:"""
             "result_count": kg_result['result_count'],
             "formatted_results": formatted_results,
             "answer": answer,
+            "graph_data": kg_result.get('graph_data', {"nodes": [], "relationships": []}),
             "time": time.time() - start_time
         }
 
@@ -720,6 +852,57 @@ Be objective and thorough in your analysis."""
             "rag_result": rag_result,
             "kg_result": kg_result
         }
+
+    def get_graph_data(self, limit: int = 50) -> Dict[str, Any]:
+        """
+        Get graph data for visualization.
+
+        Args:
+            limit: Maximum number of nodes to include
+
+        Returns:
+            Dictionary with nodes and relationships
+        """
+        query = f"""
+        MATCH (n)
+        WITH n LIMIT {limit}
+        OPTIONAL MATCH (n)-[r]->(m)
+        RETURN
+            collect(DISTINCT {{
+                id: id(n),
+                label: head(labels(n)),
+                properties: properties(n)
+            }}) as nodes,
+            collect(DISTINCT {{
+                source: id(startNode(r)),
+                target: id(endNode(r)),
+                type: type(r)
+            }}) as relationships
+        """
+
+        result = self.execute_query(query)
+
+        if result and result[0]:
+            # Get all unique nodes
+            nodes_set = {}
+            relationships_list = []
+
+            # Add nodes from the first result
+            for node in result[0].get('nodes', []):
+                if node and node.get('id') is not None:
+                    nodes_set[node['id']] = node
+
+            # Add relationships
+            for rel in result[0].get('relationships', []):
+                if rel and rel.get('source') is not None and rel.get('target') is not None:
+                    relationships_list.append(rel)
+
+            return {
+                'nodes': list(nodes_set.values()),
+                'relationships': relationships_list
+            }
+
+        return {'nodes': [], 'relationships': []}
 
 
 # ============================================

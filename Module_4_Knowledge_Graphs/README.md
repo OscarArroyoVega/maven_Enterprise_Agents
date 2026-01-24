@@ -166,6 +166,7 @@ Then open your browser to `http://localhost:8501`
 - 🎯 Beautiful, minimal UI with modern design
 - 📊 Side-by-side comparison of RAG vs KG
 - 📈 Visual score charts and metrics
+- 🔍 Interactive knowledge graph visualization
 - ⚖️ Real-time LLM judge evaluation
 - 💾 Sample questions for quick testing
 - 🎓 Integrated course CTA
@@ -238,6 +239,37 @@ result = rag.compare_with_judge("Your question here")
 # Close connection
 rag.close()
 ```
+
+## 🔍 Interactive Graph Visualization
+
+The Streamlit app includes **two types** of interactive knowledge graph visualizations powered by **Pyvis**:
+
+### 1. Full Graph Exploration
+Browse the entire knowledge graph structure:
+- **Visual Exploration**: See your Neo4j graph structure in an interactive format
+- **Node Types**: Color-coded by type (Blue: Researchers, Green: Articles, Red: Topics)
+- **Interactive**: Drag nodes, zoom, and click for details
+- **Customizable**: Adjust the number of nodes displayed (20-100)
+- **Real-time**: Generate visualizations on demand
+
+### 2. Query-Specific Visualization (NEW!)
+After each Knowledge Graph answer, see the **exact subgraph** that was used:
+- **Automatic**: Displays immediately after KG answers
+- **Context-Specific**: Shows only the nodes and relationships relevant to your question
+- **Educational**: Understand how the graph database navigated to find the answer
+- **Transparent**: See the actual data path, not just the text response
+
+**Example:** Ask "Who are Emily Chen's collaborators?" and see:
+- Emily Chen node (blue)
+- Collaborator nodes (blue)
+- Articles connecting them (green)
+- PUBLISHED relationships
+
+This helps you understand:
+- How researchers collaborate
+- Which topics connect to which articles
+- The actual graph traversal path for each query
+- Why the Knowledge Graph gave specific answers
 
 ## 📁 Project Structure
 
