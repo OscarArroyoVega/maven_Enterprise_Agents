@@ -10,7 +10,10 @@ Built with **Neo4j Aura** and **OpenAI GPT-4o-mini**, this framework provides ob
 
 See the Streamlit app in action:
 
-[▶️ Watch Demo Video](RAG%20vs%20Knowledge%20Graph%20-%2025%20January%202026.mp4)
+https://github.com/user-attachments/assets/a749e811-d5ba-4b42-9772-056afe500b1e
+
+
+
 
 *Full walkthrough: side-by-side RAG vs KG comparison, LLM judge evaluation, and interactive query-specific graph visualizations*
 
