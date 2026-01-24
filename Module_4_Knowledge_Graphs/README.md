@@ -6,6 +6,14 @@ Built with **Neo4j Aura** and **OpenAI GPT-4o-mini**, this framework provides ob
 
 **NEW:** Interactive query-specific graph visualizations show the exact data path used for each answer!
 
+## Demo
+
+See the Streamlit app in action:
+
+[▶️ Watch Demo Video](RAG%20vs%20Knowledge%20Graph%20-%2025%20January%202026.mp4)
+
+*Full walkthrough: side-by-side RAG vs KG comparison, LLM judge evaluation, and interactive query-specific graph visualizations*
+
 ## What This Does
 
 Three distinct query methods:
