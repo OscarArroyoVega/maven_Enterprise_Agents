@@ -300,7 +300,9 @@ Ideal for:
 
 Want to master building advanced multi-agent systems?
 
-[![Agent Engineering Bootcamp](course_img.png)](https://maven.com/boring-bot/advanced-llm?promoCode=200OFF)
+<a href="https://maven.com/boring-bot/advanced-llm?promoCode=200OFF">
+  <img src="course_img.png" alt="Agent Engineering Bootcamp" width="600">
+</a>
 
 ### Agent Engineering Bootcamp: Developers Edition
 
