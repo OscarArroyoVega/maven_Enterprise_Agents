@@ -1,197 +1,117 @@
 # RAG vs Knowledge Graph Evaluation Framework
 
-A comprehensive, production-ready system for comparing **Retrieval-Augmented Generation (RAG)** and **Knowledge Graph (KG)** approaches for question-answering systems.
+A comprehensive system for comparing **Retrieval-Augmented Generation (RAG)** and **Knowledge Graph (KG)** approaches for question-answering systems.
 
 Built with **Neo4j Aura** and **OpenAI GPT-4o-mini**, this framework provides objective, LLM-based evaluation to determine which approach works best for different types of questions.
 
-<div align="center">
+✨ **NEW:** Interactive query-specific graph visualizations show the exact data path used for each answer!
 
-### 🎨 Modern Streamlit Web Interface
-
-**Beautiful, minimal UI for comparing RAG and Knowledge Graph approaches side-by-side**
-
-[Try it Now](#-streamlit-web-app-recommended) • [View Examples](#-code-examples) • [Join Course](https://maven.com/boring-bot/advanced-llm?promoCode=200OFF)
-
-</div>
+[View Examples](#-code-examples) • [Join Course](https://maven.com/boring-bot/advanced-llm?promoCode=200OFF)
 
 ---
 
 ## 🎯 What This Does
 
-This implementation provides **three distinct query methods**:
+Three distinct query methods:
 
-### 1. **RAG (Retrieval-Augmented Generation)**
-- Uses semantic search (embeddings) or keyword matching to find relevant documents
+**1. RAG (Retrieval-Augmented Generation)**
+- Uses semantic search or keyword matching to find relevant documents
 - Passes retrieved context to an LLM for answer generation
-- **Best for:** Natural language understanding, semantic queries, summarization
+- Best for: Natural language understanding, semantic queries, summarization
 
-### 2. **Knowledge Graph with Text-to-Cypher**
+**2. Knowledge Graph with Text-to-Cypher**
 - Converts natural language questions into Cypher queries using GPT-4o-mini
 - Executes structured queries directly on Neo4j
-- Returns exact, verifiable data
-- **Best for:** Precise counts, relationship queries, aggregations, filtering
+- Best for: Precise counts, relationship queries, aggregations, filtering
 
-### 3. **LLM Judge Evaluation**
+**3. LLM Judge Evaluation**
 - Uses GPT-4o-mini as an impartial evaluator
-- Scores each method on accuracy, completeness, precision, and verifiability
+- Scores each method on accuracy, completeness, precision
 - Produces detailed reasoning and recommendations
 
 ## ✨ Key Features
 
 - ✅ **No Hardcoded Queries** — Cypher is generated dynamically from natural language
 - ✅ **Objective Evaluation** — Unbiased LLM-based scoring system
+- ✅ **Interactive Visualizations** — Dual graph views (full graph + query-specific)
 - ✅ **Production Ready** — Graceful error handling, retry logic, logging
-- ✅ **Flexible Data Loading** — CSV support (URL or local files)
-- ✅ **Vector Search Optional** — Embedding-based semantic RAG
 - ✅ **Batch Evaluation** — Evaluate many questions together
-- ✅ **Interactive Mode** — Ask questions in real-time
-
-## 🏗️ Architecture
-
-```
-Question
-    ↓
-    ├── [RAG Path] ─────────────→ Answer A (Interpretive)
-    │
-    ├── [Knowledge Graph Path] → Answer B (Exact)
-    │
-    └── [LLM Judge] ───────────→ Winner + Analysis
-```
-
-### RAG Path
-1. Convert question to embedding or keywords
-2. Retrieve relevant articles from Neo4j
-3. Pass context to GPT-4o-mini for answer generation
-
-### Knowledge Graph Path
-1. Convert question to Cypher using GPT-4o-mini
-2. Execute structured query on Neo4j
-3. Format results + natural-language explanation
-
-### Judge Path
-- Compares both answers
-- Scores accuracy, precision, completeness
-- Determines winner with detailed reasoning
 
 ## 📊 When to Use Which Method
 
-### Knowledge Graph Excels At:
-- *"Who are the collaborators of Emily Chen?"*
-- *"How many articles has each researcher published?"*
-- *"Which researchers work on AI Ethics?"*
-- *"Find all papers published in 2024."*
+**Knowledge Graph Excels At:**
+- "Who are the collaborators of Emily Chen?"
+- "How many articles has each researcher published?"
+- "Which researchers work on AI Ethics?"
 
-### RAG Excels At:
-- *"What are the main challenges in AI safety?"*
-- *"Explain innovations in transformer architectures."*
-- *"Summarize ethical concerns in AI research."*
-
-### Both Are Useful:
-- *"What topics does Emily Chen research?"*
-- *"Compare research focus of two researchers."*
+**RAG Excels At:**
+- "What are the main challenges in AI safety?"
+- "Explain innovations in transformer architectures."
+- "Summarize ethical concerns in AI research."
 
 ## 🚀 Quick Start
 
 ### Prerequisites
 
-1. **Neo4j Aura Account** (free tier available)
-   - Sign up at [neo4j.com/cloud/aura](https://neo4j.com/cloud/aura/)
-   - Create a new database instance
-   - Save your credentials
-
-2. **OpenAI API Key**
-   - Get one at [platform.openai.com/api-keys](https://platform.openai.com/api-keys)
+- Python 3.8+ (3.10+ recommended)
+- [Neo4j Aura](https://neo4j.com/cloud/aura/) free account
+- [OpenAI API key](https://platform.openai.com/api-keys) (~$1 for full evaluation)
 
 ### Installation
 
 ```bash
-# Clone the repository
+# Clone and navigate
 git clone https://github.com/yourusername/multi-agent-course.git
 cd multi-agent-course/Module_4_Knowledge_Graphs
 
+# Create virtual environment (recommended)
+python -m venv venv
+source venv/bin/activate  # Windows: venv\Scripts\activate
+
 # Install dependencies
 pip install -r requirements.txt
-
-# Configure environment variables
-# Edit .env file with your credentials
 ```
 
 ### Configuration
 
-Create or update your `.env` file:
+Create `.env` file:
 
 ```env
 NEO4J_URI=neo4j+s://your-instance.databases.neo4j.io
 NEO4J_USERNAME=neo4j
-NEO4J_PASSWORD=your-password-here
+NEO4J_PASSWORD=your-password
 NEO4J_DATABASE=neo4j
-OPENAI_API_KEY=your-openai-api-key-here
+OPENAI_API_KEY=sk-your-key-here
 ```
 
-### Usage
+### Setup & Launch
 
-#### 🎨 Streamlit Web App (Recommended)
-
-The easiest way to interact with the system is through our modern, minimal web interface.
-
-**⚠️ IMPORTANT: Run Setup First (Only Once)**
-
-Before using the app for the first time, run the setup script to load data and create embeddings:
-
+**Step 1: Run setup (only once)**
 ```bash
-python setup.py
+python setup.py  # Loads data & creates embeddings
 ```
 
-This will:
-- ✅ Check your environment variables
-- ✅ Test Neo4j connection
-- ✅ Load the dataset into Neo4j
-- ✅ Create embeddings for semantic search
-- ✅ Verify everything works
-
-**Then Launch the App:**
-
+**Step 2: Launch Streamlit app**
 ```bash
-# Option 1: Quick Launch
-./run_app.sh         # macOS/Linux
-run_app.bat          # Windows
-
-# Option 2: Direct Launch
 streamlit run app.py
+# Open http://localhost:8501
 ```
 
-Then open your browser to `http://localhost:8501`
+**Streamlit Features:**
+- 🎯 Beautiful minimal UI with side-by-side comparison
+- 📊 Interactive Pyvis visualizations (drag, zoom, click)
+- 📈 Radar charts and detailed metrics
+- 🔍 Query-specific graph visualization (shows exact data path)
+- 💾 Pre-loaded sample questions
 
-**Features:**
-- 🎯 Beautiful, minimal UI with modern design
-- 📊 Side-by-side comparison of RAG vs KG
-- 📈 Visual score charts and metrics
-- 🔍 Interactive knowledge graph visualization
-- ⚖️ Real-time LLM judge evaluation
-- 💾 Sample questions for quick testing
-- 🎓 Integrated course CTA
-
-#### Python Script
-
+**Alternative: Python script**
 ```bash
-# Run single question evaluation
 python knowledge_graph_rag_comparison.py
 ```
 
-#### Jupyter Notebook
-
+**Alternative: Jupyter notebook**
 ```bash
-# Launch Jupyter
 jupyter notebook knowledge_graph_neo4j_with_evals.ipynb
-```
-
-Or open in [Google Colab](https://colab.research.google.com/github/hamzafarooq/multi-agent-course/blob/main/Module_4/knowledge_graph_neo4j_with_evals.ipynb)
-
-#### Sample Questions
-
-```bash
-# Run curated evaluation sets
-python sample_questions.py
 ```
 
 ## 💻 Code Examples
@@ -201,7 +121,6 @@ python sample_questions.py
 ```python
 from knowledge_graph_rag_comparison import quick_ask_with_judge
 
-# Ask a question and get both RAG and KG answers with evaluation
 result = quick_ask_with_judge("Who are the collaborators of Emily Chen?")
 ```
 
@@ -224,131 +143,156 @@ results = batch_judge_questions(questions)
 ```python
 from knowledge_graph_rag_comparison import Neo4jGraphRAG
 
-# Initialize
 rag = Neo4jGraphRAG()
-
-# Load your data
 rag.load_data('https://your-data-source.csv')
-
-# Create embeddings for semantic search
 rag.create_embeddings_for_articles()
-
-# Compare both approaches
 result = rag.compare_with_judge("Your question here")
-
-# Close connection
 rag.close()
 ```
 
 ## 🔍 Interactive Graph Visualization
 
-The Streamlit app includes **two types** of interactive knowledge graph visualizations powered by **Pyvis**:
+The Streamlit app includes **two types** of visualizations:
 
 ### 1. Full Graph Exploration
-Browse the entire knowledge graph structure:
-- **Visual Exploration**: See your Neo4j graph structure in an interactive format
-- **Node Types**: Color-coded by type (Blue: Researchers, Green: Articles, Red: Topics)
-- **Interactive**: Drag nodes, zoom, and click for details
-- **Customizable**: Adjust the number of nodes displayed (20-100)
-- **Real-time**: Generate visualizations on demand
+- Browse entire knowledge graph structure
+- Color-coded nodes: 🔵 Researchers, 🟢 Articles, 🔴 Topics
+- Interactive: drag, zoom, click for details
+- Customizable: 20-50 nodes
 
-### 2. Query-Specific Visualization (NEW!)
-After each Knowledge Graph answer, see the **exact subgraph** that was used:
-- **Automatic**: Displays immediately after KG answers
-- **Context-Specific**: Shows only the nodes and relationships relevant to your question
-- **Educational**: Understand how the graph database navigated to find the answer
-- **Transparent**: See the actual data path, not just the text response
+### 2. Query-Specific Visualization ⭐ (Fixed!)
 
-**Example:** Ask "Who are Emily Chen's collaborators?" and see:
-- Emily Chen node (blue)
-- Collaborator nodes (blue)
-- Articles connecting them (green)
-- PUBLISHED relationships
+**Shows the exact subgraph used to answer your question**
 
-This helps you understand:
-- How researchers collaborate
-- Which topics connect to which articles
-- The actual graph traversal path for each query
-- Why the Knowledge Graph gave specific answers
+After each Knowledge Graph answer, see:
+- Relevant entities extracted from query results
+- Their relationships and connections
+- Complete graph traversal path
+
+**Example:** "Who are Emily Chen's collaborators?" displays:
+- 🔵 Emily Chen node (center)
+- 🔵 Collaborator nodes
+- 🟢 Shared articles connecting them
+- ➡️ PUBLISHED relationships
+
+**How it works:**
+1. Question → Cypher query
+2. Query executes on Neo4j
+3. System extracts entity names from results
+4. Fetches graph neighborhood (researchers → articles → topics → co-authors)
+5. Renders interactive visualization
+
+**Recent Fix:** Improved extraction algorithm to handle edge cases and empty collections, ensuring visualizations display reliably.
 
 ## 📁 Project Structure
 
 ```
 Module_4_Knowledge_Graphs/
-├── setup.py ⭐                             # Setup script (run this first!)
-├── app.py                                  # 🎨 Streamlit web app (modern UI)
-├── streamlit_helper.py                     # Helper functions for Streamlit
-├── run_app.sh                              # Quick launcher (macOS/Linux)
-├── run_app.bat                             # Quick launcher (Windows)
-├── knowledge_graph_rag_comparison.py       # Main Python implementation
-├── sample_questions.py                     # Curated evaluation question sets
-├── knowledge_graph_neo4j_with_evals.ipynb  # Jupyter notebook version
-├── requirements.txt                        # Python dependencies
-├── .env                                    # Environment variables (not in git)
-├── README.md                               # This file
-├── QUICKSTART_STREAMLIT.md                 # Quick start guide
-└── STREAMLIT_FEATURES.md                   # Feature documentation
+├── setup.py                                # First-time setup ⭐
+├── app.py                                  # Streamlit web interface
+├── streamlit_helper.py                     # Helper functions
+├── knowledge_graph_rag_comparison.py       # Core implementation
+├── sample_questions.py                     # Test question sets
+├── requirements.txt                        # Dependencies
+├── .env                                    # Your credentials (create this!)
+└── README.md                               # This file
 ```
 
 ## 📈 Data Schema
 
-The system works with research paper data including:
+**Nodes:**
+- `Researcher` (name) — Research authors
+- `Article` (title, abstract, publication_date, embedding) — Research papers
+- `Topic` (name) — Research areas
 
-- **Articles:** title, abstract, publication date
-- **Researchers:** names + co-authorship
-- **Topics:** research areas
-- **Relationships:**
-  - `PUBLISHED` (Researcher → Article)
-  - `IN_TOPIC` (Article → Topic)
+**Relationships:**
+- `(Researcher)-[:PUBLISHED]->(Article)` — Authorship
+- `(Article)-[:IN_TOPIC]->(Topic)` — Categorization
 
-## 🎓 Expected Results
+## 🔧 Troubleshooting
 
-You will get:
+### Visualization Not Showing
 
-- Winner declaration for each question (RAG, KG, or TIE)
-- Confidence level (high/medium/low)
-- Detailed metrics: accuracy, completeness, precision
-- LLM reasoning explaining the decision
-- Recommendations for the best approach per question type
+**Cause:** Query returns aggregations (counts) without actual nodes.
 
-## 📊 Evaluation Question Categories
+**Solution:** Ask about specific entities:
+- ✅ "Who are Emily Chen's collaborators?"
+- ❌ "How many collaborators does everyone have?"
 
-The framework includes 8 curated question categories:
+Check terminal for: `Debug: Graph extraction failed: [details]`
 
-1. **Relationship Queries** — Entity-entity connections (KG expected to win)
-2. **Counting & Aggregation** — Counts, totals, group-by operations (KG expected to win)
-3. **Filtering Queries** — Direct filters by researcher, year, topic (KG expected to win)
-4. **Topic-Based Queries** — Topic membership and hierarchy (Mixed results)
-5. **Semantic/Content Queries** — Summaries, insights, explanations (RAG expected to win)
-6. **Complex Multi-Hop** — Multi-step graph reasoning (KG expected to win)
-7. **Temporal Queries** — Timelines, date filtering (KG expected to win)
-8. **Comparison Queries** — Entity comparisons (Mixed results)
+### Common Issues
 
-
-
-### Using Different Models
-
-Change the model in the code:
-
-```python
-# In openai.chat.completions.create() calls
-model="gpt-4o-mini"  # Current
-model="gpt-5"        # More powerful
-
+**"No data found"**
+```bash
+python setup.py  # Load dataset first
 ```
+
+**"Failed to generate Cypher"**
+- Check OpenAI API key is valid
+- Ensure you have API credits
+
+**"Connection timeout"**
+- Verify Neo4j Aura instance is running
+- URI should start with `neo4j+s://`
+
+**"Embeddings not found"**
+```bash
+python setup.py  # Creates embeddings automatically
+```
+
+## 💡 Tips
+
+**Writing effective questions:**
+- For KG: Use specific names, ask "How many...", "Who are...", "Which..."
+- For RAG: Ask for explanations, summaries, "What are the challenges..."
+
+**Performance:**
+- Start with 20-30 nodes for visualizations
+- Use `batch_judge_questions()` for multiple queries
+- Costs: ~$0.01-0.05 per query
+
+**Extending:**
+```python
+# Use your own data
+rag.load_data('https://your-domain.com/data.csv')
+# Ensure CSV has: Title, Abstract, Authors, Topics, Publication_Date
+```
+
+## ❓ FAQ
+
+**Q: Can I use my own data?**
+A: Yes! Use `rag.load_data('your-data.csv')` with appropriate columns.
+
+**Q: Do I need to pay for Neo4j?**
+A: No, free tier supports 200K nodes (sufficient for this project).
+
+**Q: How much does this cost?**
+A: ~$0.50-$1.00 for full evaluation with OpenAI.
+
+**Q: Can I use local models?**
+A: Yes, but requires code modifications to replace OpenAI client calls.
+
+**Q: Can I use on-premise Neo4j?**
+A: Yes! Change URI in `.env` to `bolt://localhost:7687`.
+
+**Q: Why use both RAG and KG?**
+A: They excel at different tasks. This framework shows when to use which approach.
 
 ## 🎯 Why This Matters
 
-Most implementations choose *either* RAG or Knowledge Graphs. This framework shows **when to use which**, backed by objective LLM evaluations — ideal for:
+Most implementations choose *either* RAG or Knowledge Graphs. This framework shows **when to use which**, backed by objective LLM evaluations.
 
-- Building hybrid QA systems leveraging both methods
+Ideal for:
+- Building hybrid QA systems
 - Understanding semantic vs. structured query trade-offs
 - Making informed architectural decisions
-- Demonstrating the value of Knowledge Graphs vs pure LLM approaches
+- Demonstrating KG value vs pure LLM approaches
+- Benchmarking different retrieval strategies
 
 ## 📚 Learn More
 
-Want to master building advanced multi-agent systems and learn how to combine RAG, Knowledge Graphs, and other AI architectures?
+Want to master building advanced multi-agent systems?
 
 <div align="center">
 
@@ -360,14 +304,13 @@ Want to master building advanced multi-agent systems and learn how to combine RA
 
 **Hamza Farooq** - Founder | Ex-Google | Prof UCLA & UMN
 
-Master production-ready multi-agent systems, RAG, Knowledge Graphs, and advanced LLM architectures. Build real-world AI applications with hands-on projects.
+Master production-ready multi-agent systems, RAG, Knowledge Graphs, and advanced LLM architectures.
 
-This course covers:
-- ✅ Multi-agent system design and orchestration
-- ✅ RAG, Knowledge Graphs, and hybrid approaches
-- ✅ Production-ready AI architecture patterns
-- ✅ Evaluation frameworks and best practices
-- ✅ Real-world case studies and implementations
+**Topics:**
+- Multi-agent system design and orchestration
+- RAG, Knowledge Graphs, and hybrid approaches
+- Production-ready AI architecture patterns
+- Evaluation frameworks and best practices
 
 ### [**🚀 Enroll Now - Save $200 with code 200OFF →**](https://maven.com/boring-bot/advanced-llm?promoCode=200OFF)
 
@@ -375,24 +318,38 @@ This course covers:
 
 ## 🤝 Contributing
 
-Contributions are welcome! Feel free to:
-- Add new question categories
-- Improve evaluation metrics
-- Add support for other graph databases
-- Enhance the LLM judge prompts
+Contributions welcome! Ways to help:
+- Add support for other graph databases (ArangoDB, TigerGraph)
+- Enhance LLM judge prompts
+- Add unit/integration tests
+- Create tutorials or blog posts
+- Translate documentation
+
+[GitHub Repository](https://github.com/hamzafarooq/multi-agent-course)
 
 ## 📝 License
 
-APACHE 2.0 License - feel free to use this in your own projects!
+Apache 2.0 — free to use in your projects!
 
 ## 🙏 Acknowledgments
 
-- Built with [Neo4j](https://neo4j.com/) for graph database
-- Powered by [OpenAI](https://openai.com/) for embeddings and LLM evaluation
-- Dataset adapted from [generative-ai-101](https://github.com/dcarpintero/generative-ai-101)
+Built with [Neo4j](https://neo4j.com/), [OpenAI](https://openai.com/), [Streamlit](https://streamlit.io/), [Pyvis](https://pyvis.readthedocs.io/), and [Plotly](https://plotly.com/).
+
+Dataset adapted from [generative-ai-101](https://github.com/dcarpintero/generative-ai-101).
+
+## 📞 Support
+
+- **Issues:** [GitHub Issues](https://github.com/hamzafarooq/multi-agent-course/issues)
+- **Course:** [Agent Engineering Bootcamp](https://maven.com/boring-bot/advanced-llm?promoCode=200OFF)
 
 ---
+
+<div align="center">
 
 **Happy Evaluating! 🚀**
 
 *Building the future of AI, one agent at a time.*
+
+[⭐ Star us on GitHub](https://github.com/hamzafarooq/multi-agent-course) • [📚 Join the Course](https://maven.com/boring-bot/advanced-llm?promoCode=200OFF)
+
+</div>
