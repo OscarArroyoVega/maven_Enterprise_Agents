@@ -4,7 +4,22 @@ Welcome to the official course repository for **Enterprise RAG & Multi-Agent App
 
 This repo is for **enrolled students only** and contains all code, exercises, templates, and project materials used throughout the course.
 
-🔗 [Visit course page for more information](https://maven.com/boring-bot/advanced-llm)
+**What makes this different?**
+Move beyond theory and build production-ready AI systems. From Agentic RAG and Knowledge Graphs to Multi-Agent Workflows and LLM Guardrails — learn to architect, evaluate, and deploy AI applications that work in the real world.
+
+🔗 [Visit course page](https://maven.com/boring-bot/advanced-llm) • 💾 [Save $200 with code 200OFF](https://maven.com/boring-bot/advanced-llm?promoCode=200OFF)
+
+---
+
+## Quick Links
+
+- [Week 2: LLM Optimization & Deployment](#week-2-optimizing-and-deploying-large-language-models)
+- [Week 3: Agentic RAG & Semantic Cache](#week-3-agentic-rag-rag-memory--semantic-cache)
+- [Week 4: Knowledge Graphs (NEW!)](#week-4-knowledge-graphs-and-multi-agent-workflows)
+- [Week 5: AI Agents](#week-5-agents)
+- [Week 6: Responsible AI](#week-6-responsible-ai)
+- [Technology Stack](#technology-stack)
+- [What You'll Build](#what-youll-build)
 
 ---
 
@@ -69,10 +84,29 @@ Semantic Cache: [![Open in Colab](https://colab.research.google.com/assets/colab
 - Using knowledge graphs in RAG
 - Principles of KG Standardization
 - GraphRAG at scale
+- **RAG vs Knowledge Graph Evaluation** (NEW!)
+- Text-to-Cypher conversion with LLMs
+- Interactive graph visualizations
+
+**📊 Featured Project: RAG vs Knowledge Graph Comparison Framework**
+
+A production-ready Streamlit application that objectively compares RAG and Knowledge Graph approaches using LLM-based evaluation. Includes interactive graph visualizations showing the exact data path used for each answer.
+
+[View Full Documentation →](Module_4_Knowledge_Graphs/)
+
+**Notebooks:**
 
 Knowledge Graphs Basic Version: [![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/hamzafarooq/multi-agent-course/blob/main/Module_4/Knowledge_Graphs/Knowledge_Graphs_Basic_Version.ipynb)
 
 Knowledge Graphs Advanced Version: [![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/hamzafarooq/multi-agent-course/blob/main/Module_4/Knowledge_Graphs/Knowledge_Graphs_Advanced_Version.ipynb)
+
+**Interactive Demo:**
+
+```bash
+cd Module_4_Knowledge_Graphs
+python setup.py  # One-time setup
+streamlit run app.py
+```
 
 ---
 
@@ -111,28 +145,80 @@ This course uses the following tools and services:
 
 | Area                  | Tools / Frameworks                                  |
 |-----------------------|------------------------------------------------------|
-| **LLM Access**        | Ares API (via Traversaal.ai)                         |
+| **LLM Access**        | Ares API (via Traversaal.ai), OpenAI GPT-4o-mini    |
 | **Agent Frameworks**  | LangGraph, AutoGen, SmolAgents                       |
 | **Vector Search**     | FAISS (Colab), OpenSearch (optional)                |
+| **Graph Databases**   | Neo4j Aura, NetworkX, LangGraph                      |
 | **Memory & Caching**  | Redis Cloud (recommended setup)                      |
+| **Web Interfaces**    | Streamlit, FastAPI                                   |
+| **Visualizations**    | Pyvis, Plotly, Interactive Graph Rendering           |
 | **Notebooks**         | Google Colab Pro (preferred), Jupyter (optional)     |
 | **Deployments (Optional)** | AWS Lambda, Step Functions, FastAPI            |
-| **Graph Systems**     | NetworkX, LangGraph                                  |
 | **Language**          | Python 3.10+                                         |
 
-> You don’t need to pre-install anything locally.  
+> You don't need to pre-install anything locally.
 > All key dependencies are included in each notebook.
+
+---
+
+## What You'll Build
+
+This course goes beyond theory. You'll build production-ready systems including:
+
+- **Agentic RAG Systems** with advanced retrieval and semantic caching
+- **Knowledge Graph Applications** with RAG vs KG evaluation framework
+- **Interactive Dashboards** using Streamlit for real-time demos
+- **Multi-Agent Workflows** with LangGraph and AutoGen
+- **LLM-based Evaluators** for objective system comparison
+- **Production Guardrails** for responsible AI deployment
+
+Each module includes hands-on projects you can showcase in your portfolio.
 
 ---
 
 ## Student Feedback (Beta Cohort)
 
-> “Finally a course that moves past theory and teaches **how to build AI systems that work**.”  
-> “Everything was practical — I now know how to apply RAG and agents in real products.”
+> "Finally a course that moves past theory and teaches **how to build AI systems that work**."
+> "Everything was practical — I now know how to apply RAG and agents in real products."
 
 ---
 
-## Let’s Build AI Systems That Survive the Real World
+## Ready to Master Multi-Agent Systems?
 
-**Your instructor**: [Hamza Farooq](https://www.linkedin.com/in/hamzafarooq/)  
+<a href="https://maven.com/boring-bot/advanced-llm?promoCode=200OFF">
+  <img src="Module_4_Knowledge_Graphs/course_img.png" alt="Agent Engineering Bootcamp" width="600">
+</a>
+
+### Agent Engineering Bootcamp: Developers Edition
+
+**Rating:** ⭐⭐⭐⭐⭐ 4.8/5 (96 reviews)
+
+**Your Instructor:** Hamza Farooq
+*Founder | Ex-Google | Professor at UCLA & UMN*
+
+**What You'll Learn:**
+- 🚀 Build production-ready multi-agent systems from scratch
+- 🔍 Master RAG, Knowledge Graphs, and hybrid approaches
+- 🛠️ Deploy AI systems that survive real-world conditions
+- 📊 Implement LLM evaluation frameworks and guardrails
+- 💼 Create portfolio-worthy projects with modern AI stacks
+
+**Course Highlights:**
+- 6 weeks of intensive, hands-on learning
+- Live sessions with industry expert
+- Production-ready code and templates
+- Real-world case studies and architectures
+- Certificate of completion
+
+### [🎓 Enroll Now - Save $200 with code 200OFF →](https://maven.com/boring-bot/advanced-llm?promoCode=200OFF)
+
+---
+
+## Let's Build AI Systems That Survive the Real World
+
+This repository is for enrolled students only and contains all code, exercises, and project materials.
+
+**Your instructor**: [Hamza Farooq](https://www.linkedin.com/in/hamzafarooq/)
 **Created by** [boring-bot](https://maven.com/boring-bot)
+
+*Building the future of AI, one agent at a time.*
