@@ -1,4 +1,4 @@
-# Enterprise RAG & Multi-Agent Applications
+# Agent Engineering Bootcamp: Developers Edition
 
 Welcome to the official course repository for **Enterprise RAG & Multi-Agent Applications**.
 
